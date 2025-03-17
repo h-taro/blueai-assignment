@@ -11,6 +11,7 @@ class SessionsController < ApplicationController
         reset_session
         params[:session][:remember_me] == '1' ? remember(user) : forget(user)
         log_in user
+        create_first_login_notification(user) if user.sign_in_count == 1
         redirect_to forwarding_url || user
       else
         message  = "Account not activated. "
@@ -27,5 +28,15 @@ class SessionsController < ApplicationController
   def destroy
     log_out if logged_in?
     redirect_to root_url, status: :see_other
+  end
+
+  private
+
+  def create_first_login_notification(user)
+    Notification.create(
+      user: user,
+      notification_type: 'first_login',
+      message: '初回ログインありがとうございます。'
+    )
   end
 end
